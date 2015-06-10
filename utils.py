@@ -1,3 +1,6 @@
+from shutil import get_terminal_size
+import sys
+
 def which(program):
     import os
     def is_exe(fpath):
@@ -15,3 +18,21 @@ def which(program):
                 return exe_file
 
     return None
+
+
+def print_percent(num):
+    num = int(num)*100
+    if num < 10 :
+        num = '0' + str(num)
+    else :
+        num = str(num)
+    print('\b\b\b' + num + '%', end='')
+    sys.stdout.flush()
+
+
+def eprint(string):
+    """erase and print"""
+    w = get_terminal_size()[0]
+    print(' '*w, end='\r')
+    print(string, end='\r')
+    sys.stdout.flush()
