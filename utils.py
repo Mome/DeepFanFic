@@ -1,4 +1,4 @@
-from shutil import get_terminal_size
+#from shutil import get_terminal_size
 import sys
 
 def which(program):
@@ -32,7 +32,8 @@ def print_percent(num):
 
 def eprint(string):
     """erase and print"""
-    w = get_terminal_size()[0]
+    #w = get_terminal_size()[0]
+    w = 100
     print(' '*w, end='\r')
     print(string, end='\r')
     sys.stdout.flush()

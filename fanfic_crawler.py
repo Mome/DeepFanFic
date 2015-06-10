@@ -5,12 +5,19 @@ from itertools import count
 import os
 from random import random
 import subprocess
+import sys
 import threading
 from time import time, sleep
 
 
 from utils import which, eprint
 
+if sys.version_info < (3,0):
+    raise Exception('Use python3!')
+if sys.version_info < (3,333):
+    DEVNULL = open(os.devnull, "w")
+else:
+    DEVNULL = subprocess.DEVNULL
 
 if not which('fanficfare'):
     raise UserWarning(
@@ -194,7 +201,7 @@ class FFFWrapper:
         if isinstance(args, str):
             args = args.split()
         args = ['fanficfare','--format=txt'] + args + [url]
-        return subprocess.Popen(args, cwd=cwd, stdout=subprocess.DEVNULL, stderr=log_file)
+        return subprocess.Popen(args, cwd=cwd, stdout=DEVNULL, stderr=log_file)
 
 
 if __name__ == '__main__':
