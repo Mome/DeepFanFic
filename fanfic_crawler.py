@@ -204,10 +204,36 @@ class FFFWrapper:
         return subprocess.Popen(args, cwd=cwd, stdout=DEVNULL, stderr=log_file)
 
 
-if __name__ == '__main__':
+def main():
+    
+    if len(sys.argv) > 0:
+        start = sys.argv[1]
+        if start.lower() in ['none','no','last']:
+            start = None
+        else:
+            start = int(start)
+    else: 
+        start = None
+    if len(sys.argv) > 1:
+        end = sys.argv[2]
+        if end.lower() in ['none','no']:
+            end = None
+        else:
+            end = int(end)    
+    else:
+        end = None
+    if len(sys.argv) > 2:
+        max_it = sys.argv[3]
+        if max_it.lower() in ['no','none']:
+            max_it = None
+        else:
+            max_it = int(max_it)
+    else:
+        max_it = None
+
     log('Start non parallel crawling on fanfiction.net')
     fnnc = FFNCrawler()
-    fnnc.start_crawling()
+    fnnc.start_crawling(start,end,max_it)
     log('Started crawling!')
     print('\n')
     print(' '*8,'###################################')
@@ -221,3 +247,5 @@ if __name__ == '__main__':
     finally:
         fnnc.stop_crawling()
     
+if __name__ == '__main__':
+    main()
