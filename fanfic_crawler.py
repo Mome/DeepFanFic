@@ -29,7 +29,7 @@ if not which('fanficfare'):
 
 
 default_folder = os.path.expanduser('~/deepfanfic_corpus')
-if not os.path.exists(default_folder): makedirs(default_folder)
+if not os.path.exists(default_folder): os.makedirs(default_folder)
 
 # logging
 log_file = open(default_folder+'/crawler_log','a')
@@ -209,7 +209,7 @@ class FFFWrapper:
 
 def main():
     
-    if len(sys.argv) > 0:
+    if len(sys.argv) > 1:
         start = sys.argv[1]
         if start.lower() in ['none','no','last']:
             start = None
@@ -217,7 +217,7 @@ def main():
             start = int(start)
     else: 
         start = None
-    if len(sys.argv) > 1:
+    if len(sys.argv) > 2:
         end = sys.argv[2]
         if end.lower() in ['none','no']:
             end = None
@@ -225,7 +225,7 @@ def main():
             end = int(end)    
     else:
         end = None
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 3:
         max_it = sys.argv[3]
         if max_it.lower() in ['no','none']:
             max_it = None
@@ -237,7 +237,6 @@ def main():
     log('Start non parallel crawling on fanfiction.net')
     fnnc = FFNCrawler()
     fnnc.start_crawling(start,end,max_it)
-    log('Started crawling!')
     print()
     #print(' '*8,'###################################')
     print(' '*8,'## PRESS ENTER TO STOP CRAWLING! ##')
