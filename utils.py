@@ -1,5 +1,9 @@
-#from shutil import get_terminal_size
+from __future__ import print_function
+
+import os
 import sys
+
+
 
 def which(program):
     import os
@@ -16,7 +20,6 @@ def which(program):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return exe_file
-
     return None
 
 
@@ -32,8 +35,8 @@ def print_percent(num):
 
 def eprint(string):
     """erase and print"""
-    #w = get_terminal_size()[0]
-    w = 30 
-    print(' '*w, end='\r')
+    if sys.version_info >= (3,3):
+        w = os.get_terminal_size()[0]
+        print(' '*w, end='\r')
     print(string, end='\r')
     sys.stdout.flush()
