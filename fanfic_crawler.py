@@ -116,16 +116,16 @@ class FFNCrawler:
                 st = log('Download story_id: ' + str(story_id)) 
 
                 story_query = self.download_story(story_id)
-                meta_query = self.download_metadata(story_id)
+                #meta_query = self.download_metadata(story_id)
 
                 if parallel:
-                    query_store += [story_query, meta_query]
+                    query_store += [story_query]#, meta_query]
                 else:
                     story_query.wait()
-                    meta_query.wait()
+                    #meta_query.wait()
                     log_file.flush()
                     sleep(max(0,0.5-time()+st)) # if query was too short sleep a little while
-                    sleep(random()/5)
+                    #sleep(random()/10)
 
                 story_id+=1
                 

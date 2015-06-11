@@ -33,7 +33,7 @@ def print_percent(num):
 def eprint(string):
     """erase and print"""
     #w = get_terminal_size()[0]
-    w = 100
+    w = 30 
     print(' '*w, end='\r')
     print(string, end='\r')
     sys.stdout.flush()
