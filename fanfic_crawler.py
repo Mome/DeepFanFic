@@ -1,4 +1,6 @@
 #! /usr/bin/python3
+from __future__ import print_function
+from __future__ import division
 
 from datetime import datetime
 from itertools import count
@@ -13,8 +15,8 @@ from time import time, sleep
 from utils import which, eprint
 
 if sys.version_info < (3,0):
-    raise Exception('Use python3!')
-if sys.version_info < (3,333):
+    input = raw_input
+if sys.version_info < (3,3):
     DEVNULL = open(os.devnull, "w")
 else:
     DEVNULL = subprocess.DEVNULL
@@ -27,7 +29,7 @@ if not which('fanficfare'):
 
 
 default_folder = os.path.expanduser('~/deepfanfic_corpus')
-os.makedirs(default_folder, exist_ok=True)
+if not os.path.exists(default_folder): makedirs(default_folder)
 
 # logging
 log_file = open(default_folder+'/crawler_log','a')
@@ -61,8 +63,8 @@ class FFNCrawler:
         story_folder =  folder + '/stories'
         meta_folder =  folder + '/meta'
 
-        os.makedirs(story_folder, exist_ok=True)
-        os.makedirs(meta_folder, exist_ok=True)
+        if not os.path.exists(story_folder): os.makedirs(story_folder)
+        if not os.path.exists(meta_folder): os.makedirs(meta_folder)
 
         self.fffw = FFFWrapper(story_folder, meta_folder)
 
@@ -73,13 +75,14 @@ class FFNCrawler:
         self.meta_folder = meta_folder
 
     def start_crawling(self, start_id=None, end_id=None,max_iterations=None):
-        sleep(0.5)
         threading.Thread(
             target=self.run_crawer,
             args=(start_id, end_id, max_iterations),
         ).start()
 
     def run_crawer(self, start_id=None, end_id=None, max_iterations=None, parallel=False):
+
+        sleep(1)
 
         if end_id is None: end_id = float('inf')
         if max_iterations is None: max_iterations = float('inf')
@@ -235,10 +238,10 @@ def main():
     fnnc = FFNCrawler()
     fnnc.start_crawling(start,end,max_it)
     log('Started crawling!')
-    print('\n')
-    print(' '*8,'###################################')
+    print()
+    #print(' '*8,'###################################')
     print(' '*8,'## PRESS ENTER TO STOP CRAWLING! ##')
-    print(' '*8,'###################################')
+    #print(' '*8,'###################################')
     print()
     try:
         input()
