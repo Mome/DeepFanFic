@@ -29,7 +29,7 @@ if not which('fanficfare'):
 
 
 default_folder = os.path.expanduser('~/deepfanfic_corpus')
-if not os.path.exists(default_folder): makedirs(default_folder)
+if not os.path.exists(default_folder): os.makedirs(default_folder)
 
 # logging
 log_file = open(default_folder+'/crawler_log','a')
@@ -226,10 +226,36 @@ def extract_metadata(file_path, meta_folder):
     # create metafile
     pass
 
-if __name__ == '__main__':
+def main():
+    
+    if len(sys.argv) > 1:
+        start = sys.argv[1]
+        if start.lower() in ['none','no','last']:
+            start = None
+        else:
+            start = int(start)
+    else: 
+        start = None
+    if len(sys.argv) > 2:
+        end = sys.argv[2]
+        if end.lower() in ['none','no']:
+            end = None
+        else:
+            end = int(end)    
+    else:
+        end = None
+    if len(sys.argv) > 3:
+        max_it = sys.argv[3]
+        if max_it.lower() in ['no','none']:
+            max_it = None
+        else:
+            max_it = int(max_it)
+    else:
+        max_it = None
+
     log('Start non parallel crawling on fanfiction.net')
     fnnc = FFNCrawler()
-    fnnc.start_crawling()
+    fnnc.start_crawling(start,end,max_it)
     print()
     #print(' '*8,'###################################')
     print(' '*8,'## PRESS ENTER TO STOP CRAWLING! ##')
@@ -242,3 +268,5 @@ if __name__ == '__main__':
     finally:
         fnnc.stop_crawling()
     
+if __name__ == '__main__':
+    main()
