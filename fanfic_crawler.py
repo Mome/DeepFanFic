@@ -12,7 +12,7 @@ import threading
 from time import time, sleep
 
 
-from utils import which, eprint
+from utils import which, eprint, rand_perm
 
 if sys.version_info < (3,0):
     input = raw_input
@@ -165,6 +165,15 @@ class FFNCrawler:
         url = FFNCrawler.domain + FFNCrawler.just_in_all
         return FFFWrapper.list_story_urls(url)
 
+    @staticmethod
+    def map_id(id_):
+        if id_<= 100000:
+            return id_
+        prime = 11213519
+        trans_id = rand_perm(id_-100000, prime)
+        return trans_id + 100000
+
+
 
 class FFFWrapper:
     """fanficfare wrapper""" 
@@ -206,6 +215,16 @@ class FFFWrapper:
         args = ['fanficfare','--format=txt'] + args + [url]
         return subprocess.Popen(args, cwd=cwd, stdout=DEVNULL, stderr=log_file)
 
+def extrac_all_metadata(story_folder, meta_folder):
+    for d in story_folder.listdir():
+        extract_metadata(file_path, meta_folder)
+
+def extract_metadata(file_path, meta_folder):
+    # insert underscores
+    # put number to the front
+    # check for corresponding filename in metadata
+    # create metafile
+    pass
 
 if __name__ == '__main__':
     log('Start non parallel crawling on fanfiction.net')

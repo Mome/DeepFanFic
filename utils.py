@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import division
 
 import os
 import sys
@@ -40,3 +41,10 @@ def eprint(string):
         print(' '*w, end='\r')
     print(string, end='\r')
     sys.stdout.flush()
+
+
+def rand_perm(x, prime):
+    assert prime%4 == 3
+    if x >= prime: return x
+    residue = (x**2)%prime
+    return residue if x<=prime/2 else prime-residue
