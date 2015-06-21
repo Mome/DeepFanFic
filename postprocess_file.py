@@ -1,16 +1,15 @@
 import os
 import re
+import string
 import sys
 import xml
+from nlp_utils import tokenize
 
 if sys.version_info < (3,0):
     from ConfigParser import ConfigParser
 else:
     from configparser import ConfigParser
 
-categories = ['Category','Genre','Language','Characters','Status','Published','Updated','Packaged','Rating','Chapters','Words','Publisher','Story URL','Author URL','Summary']
-
-filename = 'Your Basic Love Triangle_ Complete With Awkward...-ffnet_32716.txt'
 
 def change_filename(filename):
     assert filename.endswith('.txt')
@@ -26,6 +25,7 @@ def change_filename(filename):
     title = title.replace('?',' ')
     title = '_'.join([c.strip() for c in title.split()])
     return 'ffnet-' + story_id + '-' + title + '.txt'
+
 
 for filename in os.listdir('.'):
     with open(filename) as f:
@@ -49,8 +49,8 @@ for filename in os.listdir('.'):
     #for rs in remove_strings:
     #    text = text.replace(rs,'')
 
-def remove_tags(text):
-    return ''.join(xml.etree.ElementTree.fromstring(text).itertext())
+    
+    text = ''.join(xml.etree.ElementTree.fromstring(text).itertext())
 
     print len(text),
 
@@ -75,10 +75,11 @@ def remove_tags(text):
 
     print len(text),
 
-    def remove_tags(text):
-        return ''.join(xml.etree.ElementTree.fromstring(text).itertext())
- 
-    # ToDo: words having underscore stuff
+    valid_letters = strings.ascii_letters
+
+    # words having underscore stuff
+    # struc = tokenize(text)
+    # words = [s.strip('_') for w in s for s in p for p in struc]
     
     new_name = change_filename(filename)
 
@@ -88,5 +89,3 @@ def remove_tags(text):
     print filename, len(text),
     print re.findall(r'<.*>', text)
     raw_input()
-
-

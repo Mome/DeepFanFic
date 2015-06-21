@@ -4,8 +4,6 @@ from __future__ import division
 import os
 import sys
 
-
-
 def which(program):
     import os
     def is_exe(fpath):
@@ -48,3 +46,7 @@ def rand_perm(x, prime):
     if x >= prime: return x
     residue = (x**2)%prime
     return residue if x<=prime/2 else prime-residue
+
+def save_document(path,text):
+    with open(path, 'w') as f:
+        
