@@ -1,4 +1,4 @@
-"""This module supplies a corpus document iterrator and functions to handle 1-of-N encoding."""
+"""This module supplies a corpus document iterator and functions to handle 1-of-N encoding."""
 
 from collections import Counter
 from itertools import chain
@@ -10,7 +10,7 @@ import numpy as np
 
 PATH_TO_CORPUS = os.path.expanduser('~/deepfanfic_corpus')
 
-def get_corpus_iterrator(include_meta=True, **filter_options):
+def get_corpus_iterator(include_meta=True, **filter_options):
     """Itterates over the fanfiction corpus and returns documents represented as a list of words.
 
     Only acii letters are included in the list, also punctuation and digits are excluded."""
@@ -84,7 +84,7 @@ def reload_encoding(max_dim=0, min_word_freq=0):
 def calculate_encoding(max_dim=0, min_word_freq=0):
     """Generates a 1-of-N encoding from the corpus."""
 
-    corpus_iter = get_corpus_iterrator(include_meta=False,language='English')
+    corpus_iter = get_corpus_iterator(include_meta=False, language='English')
     # count words
     freq = Counter(chain(*corpus_iter))
     # filter small counts
@@ -116,9 +116,16 @@ def get_encode_function(encoding):
 
     return encode
 
+
 if __name__ == '__main__':
-    for doc, meta in get_corpus_iterrator(language='English'):
-        print(len(doc))
-        print(meta['language'])
-        print()
-        input()
+    for doc, meta in get_corpus_iterator(language='English'):
+        print(len(doc), meta['language'])
+
+    encoding = calculate_encoding(max_dim=10000, min_word_freq=5)
+    encode = get_encode_function(encoding)
+    print()
+    print('the :', np.where(encode('the'))[0])
+    print('hulk :', np.where(encode('hulk'))[0])
+    print('harry :', np.where(encode('harry'))[0])
+    print('moritz :', np.where(encode('moritz'))[0])
+    print("''", np.where(encode('')))
