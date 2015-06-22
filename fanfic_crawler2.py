@@ -29,6 +29,7 @@ def get_random_url():
 
 
 def start_crawling(max_iterations):
+    global stop
     stop=False
     threading.Thread(
         target=download,
@@ -37,6 +38,7 @@ def start_crawling(max_iterations):
 
 
 def download(max_iterations):
+    print 'iterations', max_iterations, stop
     for _ in range(max_iterations):
         url, path = get_random_url()
         do_download(url, path)
