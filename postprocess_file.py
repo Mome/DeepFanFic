@@ -27,7 +27,7 @@ def change_filename(filename):
     return 'ffnet-' + story_id + '-' + title + '.txt'
 
 
-for filename in os.listdir('.'):
+"""for filename in os.listdir('.'):
     with open(filename) as f:
         text = f.read()
 
@@ -88,4 +88,4 @@ for filename in os.listdir('.'):
     
     print filename, len(text),
     print re.findall(r'<.*>', text)
-    raw_input()
+    raw_input()"""

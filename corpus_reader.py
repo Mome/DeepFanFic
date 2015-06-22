@@ -79,7 +79,10 @@ def calculate_encoding(max_dim=0, min_word_freq=0):
     if max_dim: freq = freq[:max_dim]
 
     encoding = list(list(zip(*freq))[1])
-    encoding.append('') # for unknown words
+    if '' not in encoding:
+        encoding.append('') # for unknown words
+    else:
+        print('empty string already in encoding')
     return np.array(encoding)
 
 
