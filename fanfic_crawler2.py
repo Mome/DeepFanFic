@@ -5,7 +5,6 @@ import threading
 
 CORPUS_FOLDER = os.path.expanduser('~/deepfanfic_corpus')
 
-
 sites = [
     ('fanfiction.net', 'http://www.fanfiction.net/s/', 11330930),
 ]
@@ -39,9 +38,13 @@ def start_crawling(max_iterations):
 
 def download(max_iterations):
     print 'iterations', max_iterations, stop
-    for _ in range(max_iterations):
+    for i in range(max_iterations):
+        print i,',',
         url, path = get_random_url()
-        do_download(url, path)
+        try:
+            do_download(url, path)
+        except:
+            pass
         if stop: break
     print 'finished !!!'
 
