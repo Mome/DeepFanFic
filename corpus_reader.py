@@ -8,7 +8,29 @@ import string
 
 import numpy as np
 
+from utils import print_percent 
+
+
 PATH_TO_CORPUS = os.path.expanduser('~/deepfanfic_corpus')
+silent = True
+
+
+def set_silent(b=None):
+    global silent
+    if b is None:
+        silent = not silent
+    else:
+        silent = b
+
+
+def count_documents():
+    num_docs=0
+    for folder_name in os.listdir(PATH_TO_CORPUS):
+        story_path = PATH_TO_CORPUS + '/' + folder_name + '/stories'
+        if os.path.isdir(story_path):
+            num_docs += len(os.listdir(story_path))
+    return num_docs
+
 
 def get_corpus_iterator(include_meta=True, **filter_options):
     """Itterates over the fanfiction corpus and returns documents represented as a list of words.
@@ -20,10 +42,18 @@ def get_corpus_iterator(include_meta=True, **filter_options):
         story_path = path + '/stories'
         meta_path = path + '/meta'
 
+        if not silent:
+            doc_num = count_documents()
+            curr_num = 0
+
         if not os.path.isdir(story_path):
             continue
 
         for doc_name in os.listdir(story_path):
+            
+            if not silent:
+                print_percent(curr_num/doc_num)
+                curr_num+=1
 
             meta_name = doc_name.split('.')
             meta_name[-1] = 'json'
@@ -38,10 +68,12 @@ def get_corpus_iterator(include_meta=True, **filter_options):
                 meta = None
 
             if not meta is None:
+
                 for opt_key, opt_value in filter_options.items():
+                    
                     if meta[opt_key] != opt_value:
-                       skip = True
-                       break
+                        skip = True
+                        break
                 else:
                     skip = False
             
@@ -68,11 +100,14 @@ def load_encoding():
     """Loads encoding from file."""
 
     path = PATH_TO_CORPUS + os.sep + 'encoding.npy'
-    encoding = np.load(path)
+    try:
+        encoding = np.load(path)
+    except:
+        encoding = save_encoding()
     return encoding
 
 
-def reload_encoding(max_dim=0, min_word_freq=0):
+def save_encoding(max_dim=0, min_word_freq=0):
     """Recalculates encoding and saves it to file."""
 
     encoding = calculate_encoding(max_dim, min_word_freq)
@@ -129,3 +164,4 @@ if __name__ == '__main__':
     print('harry :', np.where(encode('harry'))[0])
     print('moritz :', np.where(encode('moritz'))[0])
     print("''", np.where(encode('')))
+
