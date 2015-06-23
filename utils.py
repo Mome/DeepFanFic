@@ -23,7 +23,7 @@ def which(program):
 
 
 def print_percent(num):
-    num = int(num)*100
+    num = int(num*100)
     if num < 10 :
         num = '0' + str(num)
     else :
@@ -47,6 +47,3 @@ def rand_perm(x, prime):
     residue = (x**2)%prime
     return residue if x<=prime/2 else prime-residue
 
-def save_document(path,text):
-    with open(path, 'w') as f:
-        
