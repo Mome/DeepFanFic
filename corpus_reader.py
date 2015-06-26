@@ -1,12 +1,15 @@
 """This module supplies a corpus document iterator and functions to handle 1-of-N encoding."""
+from __future__ import division
 
 from collections import Counter
+import gc
 from itertools import chain
 import json
 import os
 import string
 
 import numpy as np
+from memory_profiler import profile
 
 from utils import print_percent 
 
@@ -71,7 +74,7 @@ def get_corpus_iterator(include_meta=True, **filter_options):
 
                 for opt_key, opt_value in filter_options.items():
                     
-                    if meta[opt_key] != opt_value:
+                    if meta[opt_key.lower()].lower() != opt_value.lower():
                         skip = True
                         break
                 else:
@@ -81,6 +84,7 @@ def get_corpus_iterator(include_meta=True, **filter_options):
 
             with open(story_path + '/' + doc_name) as f:
                 text = f.read()
+            
 
             word_list = to_machine_readable(text)
 
@@ -106,20 +110,20 @@ def load_encoding():
         encoding = save_encoding()
     return encoding
 
-
-def save_encoding(max_dim=0, min_word_freq=0):
+def save_encoding(max_dim=0, min_word_freq=0, **options):
     """Recalculates encoding and saves it to file."""
 
-    encoding = calculate_encoding(max_dim, min_word_freq)
+    encoding = calculate_encoding(max_dim, min_word_freq, **options)
     path = PATH_TO_CORPUS + os.sep + 'encoding.npy'
     np.save(path, encoding)
     return encoding
 
   
-def calculate_encoding(max_dim=0, min_word_freq=0):
+@profile
+def calculate_encoding(max_dim=0, min_word_freq=0, **options):
     """Generates a 1-of-N encoding from the corpus."""
 
-    corpus_iter = get_corpus_iterator(include_meta=False, language='English')
+    corpus_iter = get_corpus_iterator(include_meta=False, **options)
     # count words
     freq = Counter(chain(*corpus_iter))
     # filter small counts
@@ -153,7 +157,7 @@ def get_encode_function(encoding):
 
 
 if __name__ == '__main__':
-    for doc, meta in get_corpus_iterator(language='English'):
+    """for doc, meta in get_corpus_iterator(language='English'):
         print(len(doc), meta['language'])
 
     encoding = calculate_encoding(max_dim=10000, min_word_freq=5)
@@ -163,5 +167,13 @@ if __name__ == '__main__':
     print('hulk :', np.where(encode('hulk'))[0])
     print('harry :', np.where(encode('harry'))[0])
     print('moritz :', np.where(encode('moritz'))[0])
-    print("''", np.where(encode('')))
+    print("''", np.where(encode('')))"""
+
+    #ci = get_corpus_iterator(language='german')
+
+    #for d,m in ci:
+        #print(len(d),len(m))
+    set_silent(False)
+    calculate_encoding(max_dim=10000,min_word_freq=10,language='english')
+
 
