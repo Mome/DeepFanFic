@@ -107,19 +107,19 @@ def load_encoding():
     return encoding
 
 
-def save_encoding(max_dim=0, min_word_freq=0):
+def save_encoding(max_dim=0, min_word_freq=0, **filter_options):
     """Recalculates encoding and saves it to file."""
 
-    encoding = calculate_encoding(max_dim, min_word_freq)
+    encoding = calculate_encoding(max_dim, min_word_freq, **filter_options)
     path = PATH_TO_CORPUS + os.sep + 'encoding.npy'
     np.save(path, encoding)
     return encoding
 
   
-def calculate_encoding(max_dim=0, min_word_freq=0):
+def calculate_encoding(max_dim=0, min_word_freq=0, **filter_options):
     """Generates a 1-of-N encoding from the corpus."""
 
-    corpus_iter = get_corpus_iterator(include_meta=False, language='English')
+    corpus_iter = get_corpus_iterator(include_meta=False, **filter_options)
     # count words
     freq = Counter(chain(*corpus_iter))
     # filter small counts
@@ -134,6 +134,26 @@ def calculate_encoding(max_dim=0, min_word_freq=0):
     else:
         print('empty string already in encoding')
     return np.array(encoding)
+
+
+def calculate_encoding2(max_dim=0, min_word_freq=0, **filter_options):
+    """Generates a 1-of-N encoding from the corpus."""
+
+    corpus_iter = get_corpus_iterator(include_meta=False, **filter_options)
+    freq = Counter()
+    for doc in corpus_iter:
+        freq.update(doc)    
+    # filter small counts
+    freq = [(i,w) for w,i in iter(freq.items()) if i>=min_word_freq]
+    # trim dimension
+    freq = sorted(freq, reverse=True)
+    if max_dim: freq = freq[:max_dim]
+
+    encoding = list(list(zip(*freq))[1])
+    if '' not in encoding:
+        encoding.append('') # for unknown words
+    else:
+        print('empty string already in encoding')
 
 
 def get_encode_function(encoding):
