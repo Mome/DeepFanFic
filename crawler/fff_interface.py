@@ -106,7 +106,7 @@ def do_download(url,corpus_path):
     try:
         adapter = adapters.getAdapter(configuration, url)
         #adapter.setChaptersRange(options.begin, options.end)
-
+        adapter.is_adult = True
         # three tries, that's enough if both user/pass & is_adult needed,
         # or a couple tries of one or the other
         for x in range(0, 2):
@@ -123,8 +123,8 @@ def do_download(url,corpus_path):
                 # print('Login: `%s`, Password: `%s`' % (adapter.username, adapter.password))
             except exceptions.AdultCheckRequired:
                 print 'Please confirm you are an adult in your locale: (y/n)?'
-                if sys.stdin.readline().strip().lower().startswith('y'):
-                    adapter.is_adult = True
+                #if sys.stdin.readline().strip().lower().startswith('y'):
+                adapter.is_adult = True
 
         # regular download
         if options.metaonly:

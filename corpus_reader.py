@@ -107,7 +107,7 @@ def load_encoding():
     return encoding
 
 
-def save_encoding(max_dim=0, min_word_freq=0, **filter_options):
+def save_encoding(max_dim=0, min_word_freq=0, **filter_op   tions):
     """Recalculates encoding and saves it to file."""
 
     encoding = calculate_encoding(max_dim, min_word_freq, **filter_options)
