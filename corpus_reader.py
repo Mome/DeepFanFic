@@ -7,9 +7,9 @@ import os
 import string
 
 import numpy as np
-from memory_profiler import profile
 
 from utils import print_percent 
+
 
 PATH_TO_CORPUS = os.path.expanduser('~/deepfanfic_corpus')
 silent = False
@@ -32,7 +32,7 @@ def count_documents():
     return num_docs
 
 
-def get_corpus_iterator(include_meta=True, **filter_options):
+def get_corpus_iterator(yield_meta=True, skip_meta_none=True, **filter_options):
     """Itterates over the fanfiction corpus and returns documents represented as a list of words.
 
     Only acii letters are included in the list, also punctuation and digits are excluded."""
@@ -67,14 +67,16 @@ def get_corpus_iterator(include_meta=True, **filter_options):
                     json_code = f.read()
                 meta = json.loads(json_code)
             except Exception as e:
-                print(e)
+                #print(e)
                 meta = None
+            
+            if meta is None:
+                if skip_meta_none: continue
+            else:
+                # convert to lower case keys and values
+                meta = {key.lower() : val.lower() for key,val in meta.items()}
 
-            # convert to lower case keys and values
-            meta = {key.lower() : val.lower() for key,val in meta.items()}
-
-            # check all filter options
-            if not meta is None:
+                # check all filter options
                 for opt_key in filter_options:
                     meta_val = meta[opt_key.lower()]
                     opt_val = filter_options[opt_key].lower()
@@ -94,7 +96,7 @@ def get_corpus_iterator(include_meta=True, **filter_options):
             # remove non-latin letters
             word_list = to_machine_readable(text)
 
-            if not include_meta:
+            if not yield_meta:
                 yield word_list
             else:
                 yield (word_list, meta)
@@ -129,7 +131,7 @@ def save_encoding(max_dim=0, min_word_freq=0, **filter_options):
 def calculate_encoding(max_dim=0, min_word_freq=0, **filter_options):
     """Generates a 1-of-N encoding from the corpus."""
 
-    corpus_iter = get_corpus_iterator(include_meta=False, **filter_options)
+    corpus_iter = get_corpus_iterator(yield_meta=False, **filter_options)
 
     # count words (constant memeory consumption)
     freq = Counter()
@@ -173,9 +175,5 @@ def get_encode_function(encoding):
 
 if __name__ == '__main__':
     set_silent(False)
-    encoding = calculate_encoding(min_word_freq=5, language='German')
-    encode = get_encode_function(encoding)
-
-    #encoding = calculate_encoding2(min_word_freq=5, language='English')
-    #encode = get_encode_function(encoding)
-
+    save_encoding(min_word_freq=6, language='english')
+    print('Save encoding done!')
