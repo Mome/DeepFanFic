@@ -106,7 +106,6 @@ def do_download(url,corpus_path):
     try:
         adapter = adapters.getAdapter(configuration, url)
         #adapter.setChaptersRange(options.begin, options.end)
-        adapter.is_adult = True
         # three tries, that's enough if both user/pass & is_adult needed,
         # or a couple tries of one or the other
         for x in range(0, 2):

@@ -7,12 +7,12 @@ CORPUS_FOLDER = os.path.expanduser('~/deepfanfic_corpus')
 
 sites = [
     ('fanfiction.net', 'http://www.fanfiction.net/s/', 11330930),
-    ('archive.skyehawke.com','http://archive.skyehawke.com/story.php?no=',20301),
-    ('archiveofourown.org','http://archiveofourown.org/works/', 1731773),
-    ('ashwinder.sycophanthex.com','http://ashwinder.sycophanthex.com/viewstory.php?sid=', 22921),
-    ('asr3.slashzone.org','http://asr3.slashzone.org/archive/viewstory.php?sid=',1453),
-    ('bloodshedverse.com','http://bloodshedverse.com/stories.php?go=read&no=',13835),
-    ('bloodties-fans.com','http://bloodties-fans.com/fiction/viewstory.php?sid=',593),
+    #('archive.skyehawke.com','http://archive.skyehawke.com/story.php?no=',20301),
+    #('archiveofourown.org','http://archiveofourown.org/works/', 1731773),
+    #('ashwinder.sycophanthex.com','http://ashwinder.sycophanthex.com/viewstory.php?sid=', 22921),
+    #('asr3.slashzone.org','http://asr3.slashzone.org/archive/viewstory.php?sid=',1453),
+    #('bloodshedverse.com','http://bloodshedverse.com/stories.php?go=read&no=',13835),
+    #('bloodties-fans.com','http://bloodties-fans.com/fiction/viewstory.php?sid=',593),
     #('mediaminer.org','http://www.mediaminer.org/fanfic/view_st.php/',172632),
 ]
 
@@ -48,6 +48,10 @@ def download(max_iterations):
     for i in range(max_iterations):
         print i,',',
         url, path = get_random_url()
+        if not os.path.exists(path+'/stories'):
+            os.makedirs(path+'/stories')
+        if not os.path.exists(path+'/meta'):
+            os.makedirs(path+'/meta')
         try:
             do_download(url, path)
         except:
