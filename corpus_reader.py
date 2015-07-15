@@ -12,7 +12,7 @@ from memory_profiler import profile
 from utils import print_percent 
 
 PATH_TO_CORPUS = os.path.expanduser('~/deepfanfic_corpus')
-silent = True
+silent = False
 
 
 def set_silent(b=None):
@@ -52,14 +52,17 @@ def get_corpus_iterator(include_meta=True, **filter_options):
         for i, doc_name in enumerate(os.listdir(story_path)):
             
             if not silent:
-                if int((i/doc_num)*100) > int((i/doc_num)*100):
+                if round((i/doc_num)*100) > round(((i-1)/doc_num)*100):
                     print_percent(i/doc_num)
 
+            # reconstruct name of metafile
             meta_name = doc_name.split('.')
             meta_name[-1] = 'json'
             meta_name.insert(1,'meta')
             meta_name = '.'.join(meta_name)
-            try:
+
+            # load meta dict
+            try: 
                 with open(meta_path + '/' + meta_name) as f:
                     json_code = f.read()
                 meta = json.loads(json_code)
@@ -67,21 +70,28 @@ def get_corpus_iterator(include_meta=True, **filter_options):
                 print(e)
                 meta = None
 
-            if not meta is None:
+            # convert to lower case keys and values
+            meta = {key.lower() : val.lower() for key,val in meta.items()}
 
-                for opt_key, opt_value in filter_options.items():
-                    
-                    if meta[opt_key] != opt_value:
+            # check all filter options
+            if not meta is None:
+                for opt_key in filter_options:
+                    meta_val = meta[opt_key.lower()]
+                    opt_val = filter_options[opt_key].lower()
+                    if meta_val != opt_val:
                         skip = True
                         break
                 else:
                     skip = False
-            
+
+            # skip document if one filter options doesnt match
             if skip: continue
 
+            # open story
             with open(story_path + '/' + doc_name) as f:
                 text = f.read()
 
+            # remove non-latin letters
             word_list = to_machine_readable(text)
 
             if not include_meta:
@@ -103,7 +113,7 @@ def load_encoding():
     try:
         encoding = np.load(path)
     except:
-        encoding = save_encoding()
+        raise Exception('No encoding found!')
     return encoding
 
 
@@ -115,37 +125,23 @@ def save_encoding(max_dim=0, min_word_freq=0, **filter_options):
     np.save(path, encoding)
     return encoding
 
-@profile
+
 def calculate_encoding(max_dim=0, min_word_freq=0, **filter_options):
     """Generates a 1-of-N encoding from the corpus."""
 
-    corpus_iter = get_corpus_iterator(include_meta=False,  **filter_options)
-    # count words
-    freq = Counter(chain(*corpus_iter))
-    # filter small counts
-    freq = [(i,w) for w,i in iter(freq.items()) if i>=min_word_freq]
-    # trim dimension
-    freq = sorted(freq, reverse=True)
-    if max_dim: freq = freq[:max_dim]
-
-    encoding = list(list(zip(*freq))[1])
-    if '' not in encoding:
-        encoding.append('') # for unknown words
-    else:
-        print('empty string already in encoding')
-    return np.array(encoding)
-
-
-@profile
-def calculate_encoding2(max_dim=0, min_word_freq=0, **filter_options):
-    """Generates a 1-of-N encoding from the corpus."""
-
     corpus_iter = get_corpus_iterator(include_meta=False, **filter_options)
+
+    # count words (constant memeory consumption)
     freq = Counter()
     for doc in corpus_iter:
-        freq.update(doc)    
+        freq.update(doc)
+
+    # original version: faster but much more memory consuming
+    # freq = Counter(chain(*corpus_iter)) 
+
     # filter small counts
     freq = [(i,w) for w,i in iter(freq.items()) if i>=min_word_freq]
+
     # trim dimension
     freq = sorted(freq, reverse=True)
     if max_dim: freq = freq[:max_dim]
