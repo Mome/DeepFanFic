@@ -86,7 +86,7 @@ def get_corpus_iterator(yield_meta=True, skip_meta_none=True, **filter_options):
                 else:
                     skip = False
 
-            # skip document if one filter options doesnt match
+            # skip document if one filter option doesnt match
             if skip: continue
 
             # open story
