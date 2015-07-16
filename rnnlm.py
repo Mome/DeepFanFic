@@ -5,8 +5,7 @@
 # This code is available under the MIT License.
 # (c)2014 Nakatani Shuyo / Cybozu Labs Inc.
 
-import numpy, nltk, codecs, re
-import optparse
+import numpy, codecs, re
 
 class RNNLM:
     def __init__(self, V, K=10):
@@ -79,7 +78,7 @@ class RNNLM_BPTT(RNNLM):
                 # calculate errors
                 y[w] -= 1  # -e0
                 eh = [numpy.dot(y, self.V) * s * (s - 1)] # eh[t]
-                for t in xrange(min(tau, len(pre_s)-1)):
+                for t in range(min(tau, len(pre_s)-1)):
                     st = pre_s[-1-t]
                     eh.append(numpy.dot(eh[-1], self.W) * st * (1 - st))
 
@@ -87,7 +86,7 @@ class RNNLM_BPTT(RNNLM):
                 pre_w.append(w)
                 pre_s.append(s)
                 self.V -= numpy.outer(y, s * alpha)
-                for t in xrange(len(eh)):
+                for t in range(len(eh)):
                     self.U[:, pre_w[-1-t]] += eh[t] * alpha
                     self.W += numpy.outer(pre_s[-2-t], eh[t]) * alpha
 
@@ -128,59 +127,14 @@ class BIGRAM:
 def CorpusWrapper(corpus):
     for id in corpus.fileids():
         yield corpus.words(id)
-
+'''
 def main():
-    parser = optparse.OptionParser()
-    parser.add_option("-c", dest="corpus", help="corpus module name under nltk.corpus (e.g. brown, reuters)")
-    parser.add_option("-f", dest="filename", help="corpus filename name (each line is regarded as a document)")
-    parser.add_option("-a", dest="alpha", type="float", help="additive smoothing parameter of bigram", default=0.001)
-    parser.add_option("-k", dest="K", type="int", help="size of hidden layer", default=10)
-    parser.add_option("-i", dest="I", type="int", help="learning interval", default=10)
-    parser.add_option("-o", dest="output", help="output filename of rnnlm model")
-    parser.add_option("--seed", dest="seed", type="int", help="random seed")
-    (opt, args) = parser.parse_args()
-
     numpy.random.seed(opt.seed)
 
-    if opt.corpus:
-        m = __import__('nltk.corpus', globals(), locals(), [opt.corpus], -1)
-        corpus = CorpusWrapper(getattr(m, opt.corpus))
-    elif opt.filename:
-        corpus = []
-        with codecs.open(opt.filename, "rb", "utf-8") as f:
-            for s in f:
-                s = re.sub(r'(["\.,!\?:;])', r' \1 ', s).strip()
-                d = re.split(r'\s+', s)
-                if len(d) > 0: corpus.append(d)
-    else:
-        raise "need -f or -c"
-
-    voca = {"<s>":0, "</s>":1}
-    vocalist = ["<s>", "</s>"]
-    docs = []
-    N = 0
-    for words in corpus:
-        doc = []
-        for w in words:
-            w = w.lower()
-            if w not in voca:
-                voca[w] = len(vocalist)
-                vocalist.append(w)
-            doc.append(voca[w])
-        if len(doc) > 0:
-            N += len(doc)
-            doc.append(1) # </s>
-            docs.append(doc)
-
-    D = len(docs)
-    V = len(vocalist)
-    print "corpus : %s (D=%d)" % (opt.corpus or opt.filename, D)
-    print "vocabulary : %d / %d" % (V, N)
-
-    print ">> RNNLM(K=%d)" % opt.K
-    model = RNNLM_BPTT(V, opt.K)
+    model = RNNLM_BPTT(V, K)
     a = 1.0
-    for i in xrange(opt.I):
+    I = 10
+    for i in range(I):
         print i, model.perplexity(docs)
         model.learn(docs, a)
         a = a * 0.95 + 0.01
@@ -195,23 +149,4 @@ def main():
     model = BIGRAM(V, opt.alpha)
     model.learn(docs)
     print model.perplexity(docs)
-
-
-"""
-    testids = set(random.sample(ids, int(D * opt.testrate)))
-    trainids = [id for id in ids if id not in testids]
-    trainwords = [w.lower() for w in corpus.words(trainids)]
-
-    testset = []
-    voca = set(freq1.iterkeys())
-    for id in testids:
-        f = corpus.words(id)
-        doc = [w.lower() for w in f]
-        f.close()
-
-        testset.append(doc)
-        for w in doc:
-            voca.add(w)
-"""
-if __name__ == "__main__":
-    main()
+'''
