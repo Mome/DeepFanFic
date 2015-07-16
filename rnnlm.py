@@ -51,6 +51,17 @@ class RNNLM:
             N += len(doc)
         return log_like / N
 
+    def run(self, inp):
+        s = numpy.zeros(self.K)
+        pre_w = 0 # <s>
+        for w in inp:
+            s = 1 / (numpy.exp(- numpy.dot(self.W, s) - self.U[:, pre_w]) + 1)
+            z = numpy.dot(self.V, s)
+            y = numpy.exp(z - z.max())
+            y = y / y.sum()
+            pre_w = w
+        return y
+
     def dist(self, w):
         if w==0:
             self.s = numpy.zeros(self.K)
@@ -122,31 +133,3 @@ class BIGRAM:
                 log_like -= numpy.log((c + self.alpha) / (self.amount[pre_w] + va))
                 pre_w = w
             N += len(doc)
-        return log_like / N
-
-def CorpusWrapper(corpus):
-    for id in corpus.fileids():
-        yield corpus.words(id)
-'''
-def main():
-    numpy.random.seed(opt.seed)
-
-    model = RNNLM_BPTT(V, K)
-    a = 1.0
-    I = 10
-    for i in range(I):
-        print i, model.perplexity(docs)
-        model.learn(docs, a)
-        a = a * 0.95 + 0.01
-    print opt.I, model.perplexity(docs)
-
-    if opt.output:
-        import cPickle
-        with open(opt.output, 'wb') as f:
-            cPickle.dump([model, voca, vocalist], f)
-
-    print ">> BIGRAM(alpha=%f)" % opt.alpha
-    model = BIGRAM(V, opt.alpha)
-    model.learn(docs)
-    print model.perplexity(docs)
-'''
