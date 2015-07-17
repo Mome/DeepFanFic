@@ -6,9 +6,11 @@ import rnnlm as r
 import corpus_reader as c
 import numpy as np
 import pickle
+import utils
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
+np.seterr(over='ignore')
 
 CORPUS_PATH = os.path.expanduser('~/deepfanfic_corpus/fanfiction.net/stories')
 filters = {'language' : 'english'}
@@ -30,8 +32,8 @@ def prepare_docs(texts):
     return [vocalist, docs]
     
 def main():
-    path = os.path.expanduser('~/deepfanfic/test_dir')
-    create_models(-1, path)
+    path = os.path.expanduser('~/deepfanfic/models')
+    create_single_models(-1, path, print_progress=True)
     #index = create_index(path)
     #save(path, index, 'index')
     #index = load(path, index, 'index')
@@ -44,7 +46,7 @@ def test_models(index, path):
         print('No models found!')
         return
     bmodels = vmodels[:min(5,len(vmodels))]
-    bmodels = [(id2name(id), p) for id,p in bmodels]
+    bmodels = [(id2name(idx), p) for idx,p in bmodels]
     for i,m in enumerate(bmodels):
         print(i+1, m[0].split('.')[2],'/t',m[1])
 
@@ -90,20 +92,23 @@ def create_index(path):
                 index[w].append(name)
     return index
 
-def create_models(max_count, path):
+def create_single_models(max_count, path, print_progress=False):
     count = 0
     max_count = max(max_count, -1)
-    ids = []
-    texts = []
+    doc_count = c.count_documents()
+    if print_progress:
+        print('Number of documents: %s' % str(doc_count))
 
     for [text,meta] in c.get_corpus_iterator(**filters):
-        texts.append(text)
-        ids.append(meta['storyid'])
+        idx = meta['storyid']
+        p = train_single(5, 10, 1.2, idx, text, path)
+        if print_progress:
+            print('Trained and saved model on document no %s/%s' % (str(count+1), str(doc_count)), end='\r')
+            utils.print_percent(count/doc_count)
         #print('\nid: %s' % id)
         count += 1
         if count == max_count:
             break
-    train_singles(5, 10, 1.2, ids, texts, path)
 
     '''
     plt.figure(figsize=(20,15))
@@ -119,31 +124,29 @@ def create_models(max_count, path):
     '''
 
 
-def train_singles(I, K, a, ids, texts, path=''):
+def train_single(I, K, a, name, text, path=''):
     '''
     I: number of epochs
     K: size of hidden layer
     a: learning rate alha
-    ids: list of text ids for saving
-    texts: list of texts to train on
+    name: file/model name for saving
+    text: text to train on
     '''
 
     perplexities = []
-    # train single document models
-    for id, text in zip(ids, texts):
-        [vlist, docs] = prepare_docs([text])
-        V = len(vlist) # input layer size
+    # train single document model
+    [vlist, docs] = prepare_docs([text])
+    V = len(vlist) # input layer size
 
-        model = r.RNNLM_BPTT(V, K)
-        for i in range(I):
-            perplexities.append([i,model.perplexity(docs)])
-            model.learn(docs, a)
-            a = a * 0.95 + 0.01
-        perplexities.append([I,model.perplexity(docs)])
-        #y = model.run([0])
+    model = r.RNNLM_BPTT(V, K)
+    for i in range(I):
+        perplexities.append([i,model.perplexity(docs)])
+        model.learn(docs, a)
+        a = a * 0.95 + 0.01
+    perplexities.append([I,model.perplexity(docs)])
 
-        if path != '':
-            save(path, [vlist, model], id)
+    if path != '':
+        save(path, [vlist, model], name)
     return perplexities
 
 def save(path, data, name):
@@ -154,6 +157,7 @@ def save(path, data, name):
     '''
     with open(os.path.join(path,name), 'wb') as f:
         pickle.dump(data, f)
+    f.close()
 
 def load(path, name):
     '''
@@ -162,6 +166,7 @@ def load(path, name):
     '''
     with open(os.path.join(path,name), 'rb') as f:
         data = pickle.load(f)
+    f.close()
     return data
 
 
