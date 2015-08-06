@@ -7,16 +7,17 @@ import corpus_reader as c
 import numpy as np
 import pickle
 import utils
-import matplotlib
+"import matplotlib
 matplotlib.use('agg')
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt"
 np.seterr(over='ignore')
 
 class QRNNLM():
-    def __init__(self, corpus_path, models_path):
+    def __init__(self, corpus_path, models_path, index_path):
         self.corpus_path = os.path.expanduser(corpus_path)
         self.models_path = os.path.expanduser(models_path)
-        #filters = {'language' : 'english'}
+        self.index_path = os.path.expanduser(index_path)
+        self.filters = {'language' : 'english'}
 
 
     def encode_docs(self, docs):
@@ -117,7 +118,7 @@ class QRNNLM():
                         index[w].append(name)
         self.index = index
 
-    def create_single_models(max_count, path, print_progress=False):
+    def create_single_models(max_count=-1, print_progress=False):
         count = 0
         max_count = max(max_count, -1)
         doc_count = c.count_documents()
@@ -126,13 +127,13 @@ class QRNNLM():
 
         for [text,meta] in c.get_corpus_iterator(**filters):
             idx = meta['storyid']
-            p = train_single(5, 10, 1.2, idx, text, path)
+            p = train_single(5, 10, 1.2, idx, text)
             if print_progress:
                 print('Trained and saved model on document no %s/%s' % (str(count+1), str(doc_count)), end='\r')
                 utils.print_percent(count/doc_count)
             #print('\nid: %s' % id)
             count += 1
-            if count == max_count:
+            if count >= max_count:
                 break
 
         '''
@@ -149,7 +150,7 @@ class QRNNLM():
         '''
 
 
-    def train_single(I, K, a, name, text, path=''):
+    def train_single(I, K, a, name, text):
         '''
         I: number of epochs
         K: size of hidden layer
@@ -170,8 +171,8 @@ class QRNNLM():
             a = a * 0.95 + 0.01
         perplexities.append([I,model.perplexity(docs)])
 
-        if path != '':
-            save(path, [vlist, model], name)
+        if self.models_path != '':
+            save(models_path, [vlist, model], name)
         return perplexities
 
     def save(path, data, name):
@@ -194,6 +195,3 @@ class QRNNLM():
         f.close()
         return data
 
-
-    if __name__ == '__main__':
-        main()
