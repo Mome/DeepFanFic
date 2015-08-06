@@ -1,5 +1,0 @@
-* Finish RNN model
-* Load data into shared variables
-    * One doc at a time
-    * Whole corpus? Sequential
-* Test the model
