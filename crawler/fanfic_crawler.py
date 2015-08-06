@@ -2,17 +2,16 @@
 from __future__ import print_function
 from __future__ import division
 
-from datetime import datetime
 from itertools import count
 import os
 from random import random
 import subprocess
 import sys
 import threading
-from time import time, sleep
+from time import sleep, time
 
 
-from utils import which, eprint, rand_perm
+from utils import which, eprint, rand_perm, log
 
 if sys.version_info < (3,0):
     input = raw_input
@@ -32,15 +31,6 @@ default_folder = os.path.expanduser('~/deepfanfic_corpus')
 if not os.path.exists(default_folder): os.makedirs(default_folder)
 
 # logging
-log_file = open(default_folder+'/crawler_log','a')
-def log(message):
-    t = time()
-    timestamp = datetime.fromtimestamp(t).strftime('%H:%M:%S')
-    message = timestamp + ' ' + str(message)
-    log_file.write(message + '\n')
-    log_file.flush()
-    eprint(message)
-    return t
 
 class FFNCrawler:
     """fanfiction.net crawler"""
@@ -58,6 +48,8 @@ class FFNCrawler:
     def __init__(self, folder=None):
         if folder is None:
             folder = default_folder
+        folder = os.path.expanduser(folder)
+        self.lf = open(folder+'/crawler_log','a')
         folder = folder + '/fanfiction.net'
 
         story_folder =  folder + '/stories'
@@ -66,7 +58,7 @@ class FFNCrawler:
         if not os.path.exists(story_folder): os.makedirs(story_folder)
         if not os.path.exists(meta_folder): os.makedirs(meta_folder)
 
-        self.fffw = FFFWrapper(story_folder, meta_folder)
+        self.fffw = FFFWrapper(story_folder, meta_folder, self.lf)
 
         self.stop = True
 
@@ -105,7 +97,7 @@ class FFNCrawler:
                         last_id = int(f.read())
                         story_id = last_id+1
                 else:
-                    log('Last_id file not found!')
+                    log(self.lf, 'Last_id file not found!')
                     story_id = 0
             else:
                 story_id = start_id
@@ -116,7 +108,7 @@ class FFNCrawler:
         query_store = []
         try:
             for iteration in count():
-                st = log('Download story_id: ' + str(story_id)) 
+                st = log(self.lf, 'Download story_id: ' + str(story_id)) 
 
                 story_query = self.download_story(story_id)
                 #meta_query = self.download_metadata(story_id)
@@ -126,7 +118,7 @@ class FFNCrawler:
                 else:
                     story_query.wait()
                     #meta_query.wait()
-                    log_file.flush()
+                    self.lf.flush()
                     sleep(max(0,0.5-time()+st)) # if query was too short sleep a little while
                     #sleep(random()/10)
 
@@ -138,7 +130,7 @@ class FFNCrawler:
                     break
 
         except Exception as e:
-            log(repr(e) + ' ' + str(e))
+            log(self.lf, repr(e) + ' ' + str(e))
             raise e
         finally:
             with open(filename, 'w') as f:
@@ -147,7 +139,7 @@ class FFNCrawler:
                 for q in query_store:
                     q.wait()
             self.stop = True
-            log('finished')
+            log(self.lf, 'finished')
             
     def stop_crawling(self):
         self.stop = True
@@ -178,16 +170,17 @@ class FFNCrawler:
 class FFFWrapper:
     """fanficfare wrapper""" 
 
-    def __init__(self, story_cwd, meta_cwd):
+    def __init__(self, story_cwd, meta_cwd, log_file):
         # execution folders
         self.story_cwd = story_cwd
         self.meta_cwd = meta_cwd
+        self.log_file = log_file
 
     def download_metadata(self, url):
-        return self.call_fff(url, self.meta_cwd, '-m')
+        return self.call_fff(url, self.log_file, self.meta_cwd, '-m')
 
     def download_story(self, url):
-        return self.call_fff(url, self.story_cwd)
+        return self.call_fff(url, self.log_file, self.story_cwd)
 
     @staticmethod
     def get_url_examples(self):
@@ -209,7 +202,7 @@ class FFFWrapper:
         return out.split('\n')
 
     @staticmethod
-    def call_fff(url, cwd=None, args=''):
+    def call_fff(url, log_file, cwd=None, args=''):
         if isinstance(args, str):
             args = args.split()
         args = ['fanficfare','--format=txt'] + args + [url]
@@ -253,7 +246,7 @@ def main():
     else:
         max_it = None
 
-    log('Start non parallel crawling on fanfiction.net')
+    log(self.lf, 'Start non parallel crawling on fanfiction.net')
     fnnc = FFNCrawler()
     fnnc.start_crawling(start,end,max_it)
     print()
@@ -263,7 +256,7 @@ def main():
     print()
     try:
         input()
-        log('## Sending manual Stop Signal ##')
+        log(self.lf, '## Sending manual Stop Signal ##')
         print()
     finally:
         fnnc.stop_crawling()

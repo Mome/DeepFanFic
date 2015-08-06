@@ -3,13 +3,13 @@
 
 import os
 import rnnlm as r
-import corpus_reader as c
+from corpus_reader import CorpusReader
 import numpy as np
 import pickle
 import utils
-"import matplotlib
-matplotlib.use('agg')
-import matplotlib.pyplot as plt"
+#import matplotlib
+#matplotlib.use('agg')
+#import matplotlib.pyplot as plt
 np.seterr(over='ignore')
 
 class QRNNLM():
@@ -18,6 +18,7 @@ class QRNNLM():
         self.models_path = os.path.expanduser(models_path)
         self.index_path = os.path.expanduser(index_path)
         self.filters = {'language' : 'english'}
+        self.cr = CorpusReader(corpus_path)
 
 
     def encode_docs(self, docs):
@@ -39,7 +40,7 @@ class QRNNLM():
             if len(edoc) > 0:
                 edoc.append(1) # end word
                 edocs.append(edoc)
-        return (list, edocs)
+        return (vlist, edocs)
         
 
     def test_models(self):
@@ -49,7 +50,7 @@ class QRNNLM():
         terms = input('Comma-separated list of query terms: ')
         termlist = [x.strip() for x in terms.split(',')]
 
-        vmodels = list(query(termlist).items()) # find matching models
+        vmodels = list(self.query(termlist).items()) # find matching models
         vmodels.sort(key=lambda m : m[1], reverse=True) # sort
         if len(vmodels) == 0:
             print('No models found!')
@@ -92,7 +93,7 @@ class QRNNLM():
         # calculate probabilites for words in these models
         model_probs = {}
         for idx in ids:
-            vlist, model = load(path, idx)
+            vlist, model = self.load(path, idx)
             dist = model.run([0]) 
             prob = 0
             for term in terms:
@@ -110,7 +111,7 @@ class QRNNLM():
         modelfiles = os.listdir(self.models_path)
         for name in modelfiles:
             if name != 'index':
-                vlist,m = load(path, name)
+                vlist,m = self.load(path, name)
                 for w in vlist:
                     if w not in index:
                         index[w] = [name]
@@ -118,16 +119,16 @@ class QRNNLM():
                         index[w].append(name)
         self.index = index
 
-    def create_single_models(max_count=-1, print_progress=False):
+    def create_single_models(self, max_count=-1, print_progress=False):
         count = 0
         max_count = max(max_count, -1)
-        doc_count = c.count_documents()
+        doc_count = self.cr.count_documents()
         if print_progress:
             print('Number of documents: %s' % str(doc_count))
 
-        for [text,meta] in c.get_corpus_iterator(**filters):
+        for [text,meta] in self.cr.get_iterator(**self.filters):
             idx = meta['storyid']
-            p = train_single(5, 10, 1.2, idx, text)
+            p = self.train_single(5, 10, 1.2, idx, text)
             if print_progress:
                 print('Trained and saved model on document no %s/%s' % (str(count+1), str(doc_count)), end='\r')
                 utils.print_percent(count/doc_count)
@@ -150,7 +151,7 @@ class QRNNLM():
         '''
 
 
-    def train_single(I, K, a, name, text):
+    def train_single(self, I, K, a, name, text):
         '''
         I: number of epochs
         K: size of hidden layer
@@ -161,7 +162,8 @@ class QRNNLM():
 
         perplexities = []
         # train single document model
-        (vlist, docs) = prepare_docs([text])
+        (vlist, docs) = self.encode_docs([text])
+        print(vlist)
         V = len(vlist) # input layer size
 
         model = r.RNNLM_BPTT(V, K)
@@ -172,10 +174,10 @@ class QRNNLM():
         perplexities.append([I,model.perplexity(docs)])
 
         if self.models_path != '':
-            save(models_path, [vlist, model], name)
+            self.save(self.models_path, [vlist, model], name)
         return perplexities
 
-    def save(path, data, name):
+    def save(self, path, data, name):
         '''
         path: save location
         data: the model to save
@@ -185,7 +187,7 @@ class QRNNLM():
             pickle.dump(data, f)
         f.close()
 
-    def load(path, name):
+    def load(self, path, name):
         '''
         path: location from  which to load
         name: name of the file

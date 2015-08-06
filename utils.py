@@ -3,6 +3,8 @@ from __future__ import division
 
 import os
 import sys
+from time import time
+from datetime import datetime
 
 def which(program):
     import os
@@ -21,6 +23,14 @@ def which(program):
                 return exe_file
     return None
 
+def log(log_file, message):
+    t = time()
+    timestamp = datetime.fromtimestamp(t).strftime('%H:%M:%S')
+    message = timestamp + ' ' + str(message)
+    log_file.write(message + '\n')
+    log_file.flush()
+    eprint(message)
+    return t
 
 def print_percent(num):
     num = int(num*100)
