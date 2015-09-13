@@ -4,11 +4,14 @@ from qrnnlm import QRNNLM
 from crawler import fanfic_crawler as fc
 from utils import log
 from time import sleep
+import os
 
 def main():
-    corpus_path = "~/deepfanfic/demo/corpus"
-    models_path = "~/deepfanfic/demo/models"
-    index_path = "~/deepfanfic/demo"
+    path = os.path.expanduser("~/deepfanfic/demo")
+    corpus_path = os.path.join(path, "corpus")
+
+    if not os.path.exists(path):
+        os.mkdir(path)
 
     """
     crawl fanfiction.net, create corpus
@@ -30,7 +33,7 @@ def main():
     print()
 
     " crate the Query RNN Language Model object "
-    qrnn = QRNNLM(corpus_path, models_path, index_path)
+    qrnn = QRNNLM(path)
 
     " train a model for every file in corpus (saved in models_path) "
     qrnn.create_single_models(-1, True)

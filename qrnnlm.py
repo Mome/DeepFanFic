@@ -13,10 +13,10 @@ import utils
 np.seterr(over='ignore')
 
 class QRNNLM():
-    def __init__(self, corpus_path, models_path, index_path):
-        self.corpus_path = os.path.expanduser(corpus_path)
-        self.models_path = os.path.expanduser(models_path)
-        self.index_path = os.path.expanduser(index_path)
+    def __init__(self, path):
+        self.base_path = os.path.expanduser(path)
+        self.corpus_path = os.path.join(self.base_path, "corpus")
+        self.models_path = os.path.join(self.base_path, "models")
         self.filters = {'language' : 'english'}
         self.cr = CorpusReader(corpus_path)
 

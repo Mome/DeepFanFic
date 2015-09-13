@@ -28,7 +28,6 @@ if not which('fanficfare'):
 
 
 default_folder = os.path.expanduser('~/deepfanfic_corpus')
-if not os.path.exists(default_folder): os.makedirs(default_folder)
 
 # logging
 
@@ -49,6 +48,7 @@ class FFNCrawler:
         if folder is None:
             folder = default_folder
         folder = os.path.expanduser(folder)
+        if not os.path.exists(folder): os.makedirs(folder)
         self.lf = open(folder+'/crawler_log','a')
         folder = folder + '/fanfiction.net'
 
