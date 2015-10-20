@@ -10,7 +10,7 @@ if sys.version_info[0] != 2: print('python2 is required!!!!!!')
 from fff_interface import do_download
 
 
-CORPUS_FOLDER = os.path.expanduser('~/deepfanfic_corpus')
+CORPUS_FOLDER = os.path.expanduser('~/deepfanfic/demo/corpus')
 
 sites = [
     ('fanfiction.net', 'http://www.fanfiction.net/s/', 11330930),
