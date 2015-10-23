@@ -8,6 +8,7 @@ import logging
 import pprint
 import string
 import sys
+import json
 
 if sys.version_info < (2, 5):
     print 'This program requires Python 2.5 or newer.'
@@ -41,7 +42,7 @@ def write_story(config, adapter, writeformat, metaonly=False, outstream=None, st
     del writer
     return output_filename.split('/')[-1]
 
-def do_download(url,corpus_path):
+def do_download(url, corpus_path):
 
     story_path = corpus_path + '/stories'
     meta_path = corpus_path + '/meta'
@@ -137,13 +138,10 @@ def do_download(url,corpus_path):
             #from time import time
             #time_0 = time()
             meta_dict = adapter.getStoryMetadataOnly().getAllMetadata()
-            import json
             json_dump = json.dumps(meta_dict,sort_keys=True,indent=0)
             meta_filename = change_filename(output_filename,meta=True)
-            import os
-            meta_path = os.path.expanduser('~/deepfanfic_corpus/fanfiction.net/meta') + '/' + meta_filename
 
-            with open(meta_path, 'w') as f:
+            with open(join(meta_path, meta_filename), 'w') as f:
                 f.write(json_dump) 
             #print 'time', time()-time_0
             #time_0 = time()
