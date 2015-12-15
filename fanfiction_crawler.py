@@ -1,4 +1,22 @@
-#! /usr/bin/python3
+""" Crawl stories from fanfiction.com
+
+# ---------------- Example: Crawl 1000 random articles ----------------------------#
+
+from fanfiction_crawler import FanfictionCrawler
+crawler = FanfictionCrawler(
+    path = '~/deepfanfic_corpus/fanfiction.net',  # where to store stories and metadata
+    maxconnections = 15,    # number of download threads
+    minsleeptime = 0.5,     # minimum seconds before next download starts
+)
+crawler.crawl_random(amount=1000)
+
+# ----------------------------------------------------------------------------------#
+"""
+import sys
+if sys.version_info.major < 3:
+    print('Use Python3!')
+    sys.exit()
+
 from urllib.parse import quote_plus, urlsplit
 import subprocess
 from functools import partial
@@ -13,9 +31,10 @@ import queue
 
 from utils import is_int, rlinput
 
+
 DEFAULT_PATH = '~/deepfanfic/demo/corpus/fanfiction.net'
 MAXCONNECTIONS = 10
-SLEEPTIME = 1.5
+MINSLEEPTIME = 1.0
 
 domain = 'http://www.fanfiction.net'
 
@@ -90,7 +109,6 @@ def get_latest_story_id():
     devnull = open(os.devnull)
     links = extract_links(url, stderr=devnull)
     story_ids = [l.split('://', 1)[-1].split('/')[2] for l in links if l.strip()]
-    #print(story_ids)
     story_ids = [int(sid) for sid in story_ids if is_int(sid)]
     return max(story_ids)
 
@@ -161,19 +179,22 @@ def transform_title(title):
 
 
 class FanfictionCrawler:
-    def __init__(self, path, maxconnections=MAXCONNECTIONS):
-        self.path = path
+    def __init__(self, path, maxconnections=MAXCONNECTIONS, minsleeptime=MINSLEEPTIME):
+        self.path = os.path.expanduser(path)
         self.maxconnections = maxconnections
+        self.minsleeptime = minsleeptime
 
         # create configuration file in /tmp
         config_path = str(uuid.uuid4()) + '_personal.ini'
         config_path = os.path.join('/tmp', config_path)
         open(config_path, 'w').write(personal_config)
-
         self.config_path = config_path
+
+        if os.path.exists('crawler.log'):
+            os.remove('crawler.log') # just to lazy to use a RatatingFilehandler
         self.logfile = open('crawler.log', 'a')
 
-    def crawl_random(self, amount):
+    def crawl_random(self, amount): 
         links = random_links_generator(amount)
         print()
         self.crawl(links)
@@ -194,7 +215,7 @@ class FanfictionCrawler:
         self.crawl(links)
 
     def crawl(self, links):
-        q = queue.Queue(MAXCONNECTIONS*2)
+        q = queue.Queue(self.maxconnections*2)
 
         def download_wrapper():
             while True:
@@ -210,10 +231,10 @@ class FanfictionCrawler:
                     print('CrawlingException:', url, ':', ce)
                 finally:
                     q.task_done()
-                    print('DONE:', url)
+                    #print('DONE:', url)
 
         threads = []
-        for _ in range(MAXCONNECTIONS):
+        for _ in range(self.maxconnections):
             t = threading.Thread(target=download_wrapper)
             t.daemon = True
             t.start()
@@ -223,8 +244,8 @@ class FanfictionCrawler:
         # put a new url in the queue after `SLEEPTIME` seconds
         for url in links:
             diff = time.time() - timestamp
-            if diff < SLEEPTIME:
-                time.sleep(SLEEPTIME-diff)
+            if diff < self.minsleeptime:
+                time.sleep(self.minsleeptime-diff)
             timestamp = time.time()
 
             q.put(url)
@@ -288,7 +309,6 @@ class FanfictionCrawler:
         # download story
         try:
             cmd = ['fanficfare', '-c', self.config_path, '-f', 'txt',  url]
-            print(cmd)
             subprocess.call(cmd, cwd=story_path, stdout=stdout, stderr=stderr)
 
             # rename the story file
@@ -298,6 +318,10 @@ class FanfictionCrawler:
 
         except Exception as e:
             print('Could not acquire story:', e)
+
+    def __del__(self):
+        if exists(self.config_path):
+            os.remove(self.config_path)
 
 
 class CrawlingException(Exception):
