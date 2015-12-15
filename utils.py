@@ -1,8 +1,7 @@
-from __future__ import print_function
-from __future__ import division
-
 import os
+import readline
 import sys
+
 
 def which(program):
     import os
@@ -41,9 +40,31 @@ def eprint(string):
     sys.stdout.flush()
 
 
+def rlinput(prompt, prefill=''):
+    """Std-input with default value."""
+    if prefill is None:
+        prefill = ''
+    if not isinstance(prefill, str):
+        prefill = str(prefill)
+    readline.set_startup_hook(lambda: readline.insert_text(prefill))
+    try:
+        return input(prompt)
+    finally:
+        readline.set_startup_hook()
+
+
 def rand_perm(x, prime):
     assert prime%4 == 3
     if x >= prime: return x
     residue = (x**2)%prime
     return residue if x<=prime/2 else prime-residue
+
+
+def is_int(a):
+    try:
+        int(a)
+    except:
+        return False
+    return True
+    
 

@@ -26,8 +26,8 @@ sites = [
 numbers = list(zip(*sites))[2]
 abs_number = sum(numbers)
 
-def get_random_url():
 
+def get_random_url():
     r = randint(1,abs_number)
     
     cumsum = 0
@@ -55,16 +55,19 @@ def download(max_iterations):
     for i in range(max_iterations):
         print i,',',
         url, path = get_random_url()
+        
         if not os.path.exists(path+'/stories'):
             os.makedirs(path+'/stories')
         if not os.path.exists(path+'/meta'):
             os.makedirs(path+'/meta')
-        try:
-            do_download(url, path)
-        except:
-            pass
-        if stop: break
+        
+        do_download(url, path)
+
+        if stop:
+            break
+
     print 'finished !!!'
+
 
 if __name__ == '__main__':
     stop = True

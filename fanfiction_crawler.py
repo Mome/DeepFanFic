@@ -140,6 +140,7 @@ def random_links_generator(amount):
     for id_ in random.sample(range(max_sid), amount):
         yield '/'.join([domain, 's', str(id_)])
 
+
 def search_links(keywords, page_number, start_page=0):
     keywords = quote_plus(keywords)
     links = []
@@ -149,6 +150,7 @@ def search_links(keywords, page_number, start_page=0):
         out = subprocess.check_output(cmd)
         links += out.decode().strip().split('\n')
     return links
+
 
 def transform_title(title):
     title = title.lower()
@@ -208,6 +210,7 @@ class FanfictionCrawler:
                     print('CrawlingException:', url, ':', ce)
                 finally:
                     q.task_done()
+                    print('DONE:', url)
 
         threads = []
         for _ in range(MAXCONNECTIONS):
@@ -216,8 +219,9 @@ class FanfictionCrawler:
             t.start()
 
         timestamp = 0
+        
+        # put a new url in the queue after `SLEEPTIME` seconds
         for url in links:
-
             diff = time.time() - timestamp
             if diff < SLEEPTIME:
                 time.sleep(SLEEPTIME-diff)
@@ -249,7 +253,7 @@ class FanfictionCrawler:
         # download meta
         cmd = ['fanficfare', '-f', 'txt', '-c', self.config_path, '-m', url]
         try:
-            out = subprocess.check_output(cmd, stderr=stderr, cwd=story_path).decode()
+            out = subprocess.check_output(cmd, stderr=stderr, cwd=self.path).decode()
 
             if out.startswith('Story does not exist'):
                 raise CrawlingException('Story does not exist!')
@@ -275,15 +279,22 @@ class FanfictionCrawler:
         if 'title' not in locals():
             title = transform_title(uuid())
 
+        old_file_name = 'ffnet_' + story_id + '.txt'
+        new_file_name = 'ffnet_' + story_id + '_' + title + '.txt'
+
+        if os.path.exists(os.path.join(self.path, old_file_name)):
+            os.remove(os.path.join(self.path, old_file_name))
+
         # download story
         try:
-            cmd = ['fanficfare','-c', self.config_path, '-f', 'txt',  url]
+            cmd = ['fanficfare', '-c', self.config_path, '-f', 'txt',  url]
+            print(cmd)
             subprocess.call(cmd, cwd=story_path, stdout=stdout, stderr=stderr)
 
             # rename the story file
             old_name = 'ffnet_' + story_id + '.txt'
             new_name = 'ffnet_' + story_id + '_' + title + '.txt'
-            os.rename(os.path.join(story_path, old_name), os.path.join(story_path, new_name))
+            os.rename(os.path.join(story_path, old_file_name), os.path.join(story_path, new_file_name))
 
         except Exception as e:
             print('Could not acquire story:', e)
@@ -330,8 +341,8 @@ def crawl_dialog():
                 link_amount = None
 
     # storage path
-    path = os.path.expanduser(DEFAULT_PATH)
-    path = rlinput('Storage path: ', path)
+    path = rlinput('Storage path: ', DEFAULT_PATH)
+    path = os.path.expanduser(path)
 
     # choose download mode
     print()
