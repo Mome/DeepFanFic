@@ -1,4 +1,4 @@
-""" Crawl stories from fanfiction.com
+""" Crawl stories from fanfiction.net
 
 # ---------------- Example: Crawl 1000 random articles ----------------------------#
 
@@ -17,26 +17,29 @@ if sys.version_info.major < 3:
     print('Use Python3!')
     sys.exit()
 
-from urllib.parse import quote_plus, urlsplit
-import subprocess
 from functools import partial
 from itertools import count
-import threading
-import os
-import uuid
 import json
-import random
-import time
+import os
 import queue
+import random
+import string
+import subprocess
+import threading
+import time
+from urllib.parse import quote_plus, urlsplit
+import uuid
 
 from utils import is_int, rlinput
 
 
-DEFAULT_PATH = '~/deepfanfic/demo/corpus/fanfiction.net'
+DEFAULT_PATH = '~/deepfanfic_corpus/fanfiction.net'
 MAXCONNECTIONS = 10
 MINSLEEPTIME = 1.0
 
 domain = 'http://www.fanfiction.net'
+
+valid_title_symboles = string.digits + string.ascii_letters + '_ '
 
 categories = {
     'Lord-of-the-Rings' : ['book', 382],
@@ -171,6 +174,7 @@ def search_links(keywords, page_number, start_page=0):
 
 
 def transform_title(title):
+    title = ''.join(c for c in title if c in valid_title_symboles)
     title = title.lower()
     title = title.replace('_',' ')
     title = title.replace('.',' ')
@@ -253,7 +257,6 @@ class FanfictionCrawler:
         print('wait for tasks to be done')
         q.join()
         print('all tasks done')
-        
 
     def download(self, url, stdout=None, stderr=None):
 
@@ -286,10 +289,10 @@ class FanfictionCrawler:
             try:
                 title = transform_title(meta_dict['title'])
             except:
-                title = transform_title(uuid())
+                print('Use uuid for meta!')
+                title = transform_title(str(uuid.uuid4()))
 
-            filename = ['ffnet', 'meta', story_id, title, 'json']
-            filename = '.'.join(filename)
+            filename = '.'.join(['ffnet', 'meta', story_id, title, 'json'])
 
             with open(os.path.join(meta_path, filename), 'w') as f:
                 f.write(json_code)
@@ -298,13 +301,14 @@ class FanfictionCrawler:
             print('Could not acquire metadata:', e)
 
         if 'title' not in locals():
-            title = transform_title(uuid())
+            print('Use uuid for story title!')
+            title = transform_title(str(uuid.uuid4()))
 
-        old_file_name = 'ffnet_' + story_id + '.txt'
-        new_file_name = 'ffnet_' + story_id + '_' + title + '.txt'
+        old_filename = 'ffnet_' + story_id + '.txt'
+        new_filename = '.'.join(['ffnet', story_id, title, 'txt'])
 
-        if os.path.exists(os.path.join(self.path, old_file_name)):
-            os.remove(os.path.join(self.path, old_file_name))
+        if os.path.exists(os.path.join(self.path, old_filename)):
+            os.remove(os.path.join(self.path, old_filename))
 
         # download story
         try:
@@ -312,9 +316,7 @@ class FanfictionCrawler:
             subprocess.call(cmd, cwd=story_path, stdout=stdout, stderr=stderr)
 
             # rename the story file
-            old_name = 'ffnet_' + story_id + '.txt'
-            new_name = 'ffnet_' + story_id + '_' + title + '.txt'
-            os.rename(os.path.join(story_path, old_file_name), os.path.join(story_path, new_file_name))
+            os.rename(os.path.join(story_path, old_filename), os.path.join(story_path, new_filename))
 
         except Exception as e:
             print('Could not acquire story:', e)
