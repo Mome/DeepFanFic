@@ -3,7 +3,7 @@
 
 import os
 import rnnlm as r
-from corpus_reader import CorpusReader
+import corpus_reader as CorpusReader
 import numpy as np
 import pickle
 import utils
@@ -128,7 +128,7 @@ class QRNNLM():
         if print_progress:
             print('Number of documents: %s' % str(doc_count))
 
-        for [text,meta] in self.cr.get_iterator(**self.filters):
+        for [text,meta] in self.cr.get_corpus_iterator(**self.filters):
             idx = meta['storyid']
             p = self.train_single(5, 10, 1.2, idx, text)
             if print_progress:

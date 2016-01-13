@@ -1,17 +1,21 @@
 #!/bin/env python3
 #
 from qrnnlm import QRNNLM
-from utils import log
+from fanfiction_crawler import FanfictionCrawler
+from corpus_reader import CorpusReader
 from time import sleep
 import os
 
 ''' Use the crawler first to get a number of documents '''
 
 def main():
-    path = os.path.expanduser("~/deepfanfic/demo")
+    path = os.path.expanduser("~/tmp/deep/demo")
 
     if not os.path.exists(path):
-        os.mkdir(path)
+        os.makedirs(path)
+
+    crawler = FanfictionCrawler(path=path, maxconnections=15, minsleeptime=0.5)
+    crawler.crawl_random(amount=10)
 
     " crate the Query RNN Language Model object "
     qrnn = QRNNLM(path)

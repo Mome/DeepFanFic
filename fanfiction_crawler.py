@@ -322,7 +322,7 @@ class FanfictionCrawler:
             print('Could not acquire story:', e)
 
     def __del__(self):
-        if exists(self.config_path):
+        if os.path.exists(self.config_path):
             os.remove(self.config_path)
 
 
