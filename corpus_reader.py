@@ -28,7 +28,7 @@ class CorpusReader:
     def get_corpus_iterator(self, yield_meta=True, skip_meta_none=True, **filter_options):
         """Itterates over the fanfiction corpus and returns documents represented as a list of words.
         Only acii letters are included in the list, also punctuation and digits are excluded."""
-        print(os.listdir(self.path))
+        
         for folder_name in os.listdir(self.path):
             path = self.path + '/' + folder_name
             story_path = path + '/stories'
@@ -171,5 +171,5 @@ if __name__ == '__main__':
     print(reader.count_documents())
 
     for i in iterator:
-        print(len(i))
+        print(i)
         input()
