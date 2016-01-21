@@ -3,7 +3,7 @@
 
 import os
 import rnnlm as r
-import corpus_reader as CorpusReader
+from corpus_reader import CorpusReader
 import numpy as np
 import pickle
 import utils
@@ -20,6 +20,9 @@ class QRNNLM():
             corpus_path = os.path.join(self.base_path, "corpus")
         self.corpus_path = corpus_path
         self.filters = {'language' : 'english'}
+        os.makedirs(self.base_path, exist_ok=True)
+        os.makedirs(self.models_path, exist_ok=True)
+        os.makedirs(self.corpus_path, exist_ok=True)
         self.cr = CorpusReader(corpus_path)
 
 

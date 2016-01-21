@@ -14,8 +14,8 @@ def main():
     if not os.path.exists(path):
         os.makedirs(path)
 
-    crawler = FanfictionCrawler(path=path, maxconnections=15, minsleeptime=0.5)
-    crawler.crawl_random(amount=10)
+    crawler = FanfictionCrawler(path=os.path.join(path, 'corpus'), maxconnections=15, minsleeptime=0.5)
+    crawler.crawl_random(amount=0)
 
     " crate the Query RNN Language Model object "
     qrnn = QRNNLM(path)
